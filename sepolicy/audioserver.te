@@ -1,15 +1,9 @@
-# nvram
-allow audioserver nvdata_file:dir rw_dir_perms;
-allow audioserver nvdata_file:file create_file_perms;
-allow audioserver nvdata_file:lnk_file r_file_perms;
-allow audioserver ccci_device:chr_file rw_file_perms;
+allow audioserver modem_prop:file { read open getattr };
+allow audioserver sysfs:file { read open };
+allow audioserver ccci_device:chr_file { read write open ioctl };
+allow audioserver ebc_device:chr_file { read write open };
+allow audioserver wcn_combo_chip_prop:file { read open getattr };
+allow audioserver property_socket:sock_file write;
+allow audioserver init:unix_stream_socket connectto;
+allow audioserver oemfs:dir search;
 
-# Audio
-allow audioserver sysfs:file { open read write };
-allow audioserver sysfs_devinfo:file { open read write };
-allow audioserver sysfs_ccci:file r_file_perms;
-allow audioserver sysfs_ccci:dir search;
-allow audioserver audiohal_prop:property_service set;
-
-# boot_mode
-allow audioserver sysfs_boot_mode:file r_file_perms;

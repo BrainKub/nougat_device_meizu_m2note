@@ -35,7 +35,7 @@ WIFI_DRIVER_FW_PATH_AP:=AP
 WIFI_DRIVER_FW_PATH_P2P:=P2P
 
 # Tethering
-PRODUCT_PROPERTY_OVERRIDES += net.tethering.noprovisioning=true
+#PRODUCT_PROPERTY_OVERRIDES += net.tethering.noprovisioning=true
 
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true

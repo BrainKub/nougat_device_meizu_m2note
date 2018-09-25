@@ -1,7 +1,6 @@
 # Keyhandler
 PRODUCT_PACKAGES += \
-    CMActions \
-    com.cyanogenmod.keyhandler
+    ConfigPanel
 
 # Doze
 PRODUCT_PACKAGES += \

@@ -1,56 +1,36 @@
 # Recovery
-# Uncomment RECOVERY_VARIANT to build twrp
-#RECOVERY_VARIANT=twrp
-
+RECOVERY_VARIANT=twrp
 BOARD_HAS_NO_SELECT_BUTTON := true
-TARGET_RECOVERY_FSTAB := device/meizu/m2note/rootdir/recovery.fstab
-BOARD_NO_SECURE_DISCARD := true # secure discard is painfully slow...
-
-# TWRP stuff
+TARGET_RECOVERY_FSTAB := device/meizu/m2note/rootdir/fstab.mt6735
+# TWRP-specific
 ifeq ($(RECOVERY_VARIANT), twrp)
-BOARD_SUPPRESS_SECURE_ERASE := true
-TW_INCLUDE_CRYPTO := true
-TW_NO_REBOOT_BOOTLOADER := true
-TW_USE_MODEL_HARDWARE_ID_FOR_DEVICE_ID := true
 
-# don't prompt to install twrp apk
-TW_EXCLUDE_TWRPAPP := true
+# Don't take forever to wipe
+BOARD_SUPPRESS_SECURE_ERASE := true
+
+#TWRP Fix slow wiping
+BOARD_SUPPRESS_EMMC_WIPE := true
 
 #TW_USE_TOOLBOX := true
-TW_INCLUDE_NTFS_3G := true
-TW_NO_EXFAT_FUSE := true
-TW_EXCLUDE_SUPERSU := true
-
-#M2Note: Flip the screen 180deg
-BOARD_HAS_FLIPPED_SCREEN := true
-BOARD_USE_FRAMEBUFFER_ALPHA_CHANNEL := true
-TARGET_DISABLE_TRIPLE_BUFFERING := false
 DEVICE_RESOLUTION := 1080x1920
 DEVICE_SCREEN_WIDTH := 1080
 DEVICE_SCREEN_HEIGHT := 1920
-RECOVERY_GRAPHICS_USE_LINELENGTH := true
-TARGET_RECOVERY_PIXEL_FORMAT := "RGBA_8888"
-TW_MAX_BRIGHTNESS := 255
-TW_THEME := portrait_hdpi
-
-TW_BRIGHTNESS_PATH := /sys/class/leds/lcd-backlight/brightness
-TW_CUSTOM_CPU_TEMP_PATH := /sys/devices/virtual/thermal/thermal_zone1/temp
-TARGET_RECOVERY_LCD_BACKLIGHT_PATH := \"/sys/class/leds/lcd-backlight/brightness\"
-
 RECOVERY_SDCARD_ON_DATA := true
-TW_DEFAULT_EXTERNAL_STORAGE := true
-TW_NO_USB_STORAGE := true
-TW_INTERNAL_STORAGE_PATH := "/data/media"
-TW_INTERNAL_STORAGE_MOUNT_POINT := "data"
+TW_INTERNAL_STORAGE_PATH := "/data/media/0"
+TW_INTERNAL_STORAGE_MOUNT_POINT := "sdcard"
 TW_EXTERNAL_STORAGE_PATH := "/external_sd"
 TW_EXTERNAL_STORAGE_MOUNT_POINT := "external_sd"
+TW_DEFAULT_EXTERNAL_STORAGE := true
+TW_DEVICE_VERSION := By BrainKub
+TW_EXCLUDE_TWRPAPP := true
+TW_EXCLUDE_SUPERSU := true
+BOARD_HAS_FLIPPED_SCREEN := true
 
-TW_INCLUDE_L_CRYPTO := true
-
-else
-# CWM
-BOARD_RECOVERY_SWIPE := true
-BOARD_SUPPRESS_EMMC_WIPE := true
-BOARD_USE_CUSTOM_RECOVERY_FONT := \"roboto_15x24.h\"
-TARGET_RECOVERY_PIXEL_FORMAT := "RGBA_8888"
+# The path to a temperature sensor
+TW_CUSTOM_CPU_TEMP_PATH := /sys/class/thermal/thermal_zone1/temp
 endif
+
+
+
+
+

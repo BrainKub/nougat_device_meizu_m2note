@@ -1,11 +1,3 @@
-# Guiext
-allow priv_app guiext-server_service:service_manager find;
+allow priv_app cache_private_backup_file:dir getattr;
+allow priv_app device:dir { read open };
 
-# PQ
-allow priv_app pq_service:service_manager find;
-
-# dev_info
-allow priv_app sysfs_devinfo:file r_file_perms;
-
-# thermal
-allow priv_app sysfs_thermal:file r_file_perms;

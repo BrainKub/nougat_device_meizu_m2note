@@ -1,4 +1,4 @@
-unix_socket_connect(radio, rild, ril-daemon-mtk)
+allow radio init:unix_dgram_socket write;
+# allow radio init_tmpfs:file read;
+allow radio system_app_data_file:dir getattr;
 
-allow radio ril_mux_report_case_prop:property_service set;
-allow radio ril_msim_power_prop:property_service set;

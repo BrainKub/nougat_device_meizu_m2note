@@ -9,3 +9,8 @@ TARGET_SPECIFIC_HEADER_PATH := $(DEVICE_PATH)/include
 
 # Fragments include
 -include $(DEVICE_PATH)/board/*.mk
+
+-include vendor/mediatek/VendorConfig.mk
+
+# SELinux
+#BOARD_SEPOLICY_DIRS += $(LOCAL_PATH)/sepolicy

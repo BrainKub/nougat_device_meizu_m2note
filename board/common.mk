@@ -6,7 +6,7 @@ BOARD_HARDWARE_CLASS := $(DEVICE_PATH)/cmhw/
 TARGET_SYSTEM_PROP := $(DEVICE_PATH)/system.prop
 
 # SELinux
-BOARD_SEPOLICY_DIRS := $(DEVICE_PATH)/sepolicy
+#BOARD_SEPOLICY_DIRS := $(DEVICE_PATH)/sepolicy
 
 # Seccomp filter
 BOARD_SECCOMP_POLICY := $(DEVICE_PATH)/seccomp

@@ -20,7 +20,7 @@ on early-init
     write /sys/class/leds/lcd-backlight/trigger "backlight"
 
 on init
-    export LD_SHIM_LIBS "/system/lib/libmedia.so|libshim_snd.so:/system/lib64/libmedia.so|libshim_snd.so:/system/lib/liblog.so|libshim_xlog.so:/system/lib64/liblog.so|libshim_xlog.so:/system/lib/libui.so|libshim_ui.so:/system/lib64/libui.so|libshim_ui.so:/system/lib/libgui.so|libshim_gui.so:/system/lib64/libgui.so|libshim_gui.so"
+    export LD_SHIM_LIBS "/system/lib/libmedia.so|libshim_snd.so:/system/lib64/libmedia.so|libshim_snd.so:/system/lib/liblog.so|libshim_xlog.so:/system/lib64/liblog.so|libshim_xlog.so:/system/lib/libui.so|libshim_ui.so:/system/lib64/libui.so|libshim_ui.so:/system/lib/libgui.so|libshim_gui.so:/system/lib64/libgui.so|libshim_gui.so:/system/vendor/lib/egl/libGLES_mali.so|libshim_atomic.so:/system/vendor/lib64/egl/libGLES_mali.so|libshim_atomic.so"
 
     # Mount points
     mkdir /protect_f 0771 system system
@@ -74,6 +74,7 @@ on post-fs
     mkdir /dev/block/platform/mtk-msdc.0/by-name 0755 root system
     symlink /dev/block/platform/mtk-msdc.0/11230000.MSDC0/by-name/nvram /dev/block/platform/mtk-msdc.0/by-name/nvram
     symlink /dev/block/platform/mtk-msdc.0/11230000.MSDC0/by-name/proinfo /dev/block/platform/mtk-msdc.0/by-name/proinfo
+    symlink /dev/block/platform/mtk-msdc.0/11120000.MSDC0/by-name /dev/block/platform/mtk-msdc.0/by-name
 
     # Wifi
     mknod /dev/wmtWifi c 153 0
@@ -105,6 +106,13 @@ on post-fs
     chmod 0660 /dev/stpgps
     chown gps gps /dev/stpgps
 
+on late-fs
+    # boot time fs tune
+    write /sys/block/mmcblk0/queue/iostats 0
+    write /sys/block/mmcblk0/queue/iosched/slice_idle 0
+    write /sys/block/mmcblk0/queue/read_ahead_kb 2048
+    write /sys/block/mmcblk0/queue/nr_requests 256
+
 on post-fs-data
     # We chown/chmod /nvdata again so because mount is run as root + defaults
     chown root system /nvdata
@@ -115,6 +123,7 @@ on post-fs-data
 
     # Set SELinux security contexts on upgrade or policy update.
     restorecon_recursive /nvdata
+    restorecon /data/nvram
 
     # Give system access to rfkill device node
     chmod 0660 /dev/rfkill
@@ -585,142 +594,7 @@ on property:sys.boot_completed=1
     write /sys/block/mmcblk0/queue/nr_requests 128
     write /sys/block/mmcblk0/queue/iostats 1
 
-on property:vold.decrypt=trigger_reset_main
-    start stop_modem
-
-on property:vold.decrypt=trigger_restart_min_framework
-    start start_modem
-    start msensord
-
-on property:vold.decrypt=trigger_restart_framework
-    start nvram_daemon
-    start start_modem
-    start msensord
-
-on property:vold.decrypt=trigger_shutdown_framework
-    start stop_modem
-
-service stop_modem /vendor/bin/md_ctrl 0
-    class main
-    disabled
-    oneshot
-
-service start_modem /vendor/bin/md_ctrl 1
-    class main
-    disabled
-    oneshot
-
-service nvram_daemon /vendor/bin/nvram_daemon
-    class main
-    user root
-    group system
-    oneshot
-
-service pq /vendor/bin/pq
-    class main
-    user system
-    group system graphics
-    oneshot
-
-# MTK Wi-Fi related services
-
-# monitor property and power on/off wlan
-on property:wlan.driver.status=ok
-    write /dev/wmtWifi "1"
-
-on property:wlan.driver.status=unloaded
-    write /dev/wmtWifi "0"
-
-service p2p_supplicant /system/bin/wpa_supplicant \
-    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
-    -I/system/etc/wifi/wpa_supplicant_overlay.conf -N \
-    -ip2p0 -Dnl80211 -c/data/misc/wifi/p2p_supplicant.conf -e/data/misc/wifi/entropy.bin \
-    -I/system/etc/wifi/p2p_supplicant_overlay.conf \
-    -O/data/misc/wifi/sockets -g@android:wpa_wlan0
-    #   we will start as root and wpa_supplicant will switch to user wifi
-    #   after setting up the capabilities required for WEXT
-    #   user wifi
-    #   group wifi inet keystore
-    class main
-    socket wpa_wlan0 dgram 660 wifi wifi
-    disabled
-    oneshot
-
-service wpa_supplicant /system/bin/wpa_supplicant \
-    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf -e/data/misc/wifi/entropy.bin \
-    -I/system/etc/wifi/wpa_supplicant_overlay.conf \
-    -O/data/misc/wifi/sockets -g@android:wpa_wlan0
-    #   we will start as root and wpa_supplicant will switch to user wifi
-    #   after setting up the capabilities required for WEXT
-    #   user wifi
-    #   group wifi inet keystore
-    class main
-    socket wpa_wlan0 dgram 660 wifi wifi
-    disabled
-    oneshot
-
-# GPS
-service agpsd /vendor/bin/mtk_agpsd
-    class main
-    socket agpsd stream 660 gps system
-    socket agpsd2 stream 660 gps inet
-    socket agpsd3 stream 660 gps inet
-    user gps
-    group gps radio inet sdcard_r sdcard_rw misc
-
-service wifi2agps /vendor/bin/wifi2agps
-    class main
-    user wifi
-    group gps inet
-
-service mnld /vendor/bin/mnld
-    class main
-    user gps
-    group gps inet misc sdcard_rw sdcard_r media_rw system
-    socket mnld stream 660 gps system
-
-# Sensors
-service msensord /vendor/bin/msensord
-    class main
-    oneshot
-
-service akmd09911 /vendor/bin/akmd09911
-    disabled
-    user system
-    group system
-    class main
-
-# Emsvr
-service emsvr /vendor/bin/em_svr
-    disabled
-    user system
-    group system radio diag net_bt_stack
-
-# Thermal
-service thermal_manager /vendor/bin/thermal_manager
-    class main
-    user root
-    group system
-    oneshot
-
-service wmtLoader /vendor/bin/wmt_loader
-    user root
-    group root
-    class core
-    oneshot
-
-service conn_launcher /vendor/bin/6620_launcher -p /vendor/etc/firmware/
-    user system
-    group system
-    class core
-
 # Charger
-service charger /sbin/healthd -c
+service charger /charger
     class charger
-    critical
-    seclabel u:r:healthd:s0
-
-service fuelgauged /vendor/bin/fuelgauged
-    class main
-    user system
-    group system
+    seclabel u:r:charger:s0
